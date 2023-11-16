@@ -34,15 +34,10 @@
 __version__ = "$Revision: $"
 # $Source$
 
-import os
 import re
-import subprocess
 import unittest
 
-from pykg_config import packagespeclist
-from pykg_config import substitute
-from pykg_config import dependency
-from pykg_config import version
+from pykg_config import dependency, packagespeclist, substitute, version
 from pykg_config.pkgconfig import call_pykgconfig
 
 

@@ -29,7 +29,7 @@
 # Author: Geoffrey Biggs
 # Part of pykg-config.
 
-"""Substitutes values. 
+"""Substitutes values.
 
 Recursive substitution can be performed until no substitutions are left.
 An infinite recursion check is performed first to prevent infinite
@@ -91,7 +91,20 @@ def substitute(value, replacements, globals={}):
     Variables in the given value are substituted. No recursion is
     performed. replacements is a dictionary of variables.
 
+    Args:
+        value (str): The input string containing variables to substitute.
+        replacements (dict): A dictionary of variables and their replacements.
+        globals (dict, optional): Global variables to consider during substitution.
+            Defaults to an empty dictionary.
+
+    Returns:
+        str: The resulting string after variable substitution.
+
+    Raises:
+        UndefinedVarError: If a variable in the value is not defined in replacements or globals.
+
     """
+
     for name in get_all_substitutions(value):
         if name in globals:
             value = replace_in_string(value, name, globals[name])
@@ -108,20 +121,21 @@ def substitute(value, replacements, globals={}):
 
 
 def replace_in_string(value, name, substitution):
-    # Replace all instances of name in value with substitution
+    """Replace all instances of name in value with substitution."""
     to_replace = get_to_replace_re(name)
-    # Make sure backslashes are escaped (e.g. '\g' or '\0', ... are escaped)
+    # Make sure backslashes are escaped (e.g., '\g' or '\0', ... are escaped)
     substitution = substitution.replace("\\", "\\\\")
     return to_replace.sub(substitution, value)
 
 
 def get_to_replace_re(name):
-    # Build the re object that matches a given substition name
+    """Build the re object that matches a given substitution name."""
     return re.compile("(?<!\$)\$\{%s\}" % name, re.U)
 
 
 def get_all_substitutions(value):
-    found_names = re.findall("(?<!\$)\${(?P<name>[\w.]+)\}", value, flags=re.U)
+    """Get a list of all unique variable names in the given value."""
+    found_names = re.findall(r"(?<!\$)\${(?P<name>[\w.]+)\}", value, flags=re.U)
     names = []
     for name in found_names:
         if name not in names:
@@ -130,6 +144,7 @@ def get_all_substitutions(value):
 
 
 def collapse_escapes(value):
+    """Collapse double dollar signs into a single dollar sign."""
     return value.replace("$$", "$")
 
 

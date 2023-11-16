@@ -31,6 +31,7 @@
 
 __version__ = "$Revision: $"
 # $Source$
+from os import environ
 
 env_var_prefix = "PKG_CONFIG_PATH"
 
@@ -46,8 +47,6 @@ vars2EnvVarsRemap = {v: k for k, v in envVars2VarsRemap.items()}
 
 
 def look_up_var_in_env(var_name, default=None):
-    from os import environ
-
     return environ.get(vars2EnvVarsRemap[var_name], default=default)
 
 

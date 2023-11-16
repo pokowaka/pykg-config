@@ -7,3 +7,4 @@ MANIFEST
 *.pyo
 tags
 /*.egg-info
+.venv

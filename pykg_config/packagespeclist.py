@@ -39,7 +39,7 @@ __version__ = "$Revision: $"
 import re
 
 from pykg_config.version import Version
-from pykg_config.dependency import *
+from pykg_config.dependency import text_to_operator, Dependency
 
 
 def parse_package_spec_list(value):
@@ -49,7 +49,7 @@ def parse_package_spec_list(value):
     """
     result = []
     matches = re.findall(
-        "(?P<name>[^\s,!=<>]+)(,|\s*(?P<operator>[!=<>]+)\s*(?P<version>[^\s,]+))?",
+        r"(?P<name>[^\s,!=<>]+)(,|\s*(?P<operator>[!=<>]+)\s*(?P<version>[^\s,]+))?",
         value.strip(),
         re.U,
     )

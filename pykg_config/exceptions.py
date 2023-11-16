@@ -38,8 +38,6 @@ __version__ = "$Revision: $"
 class PykgConfigError(Exception):
     """Base exception class for pykg-config."""
 
-    pass
-
 
 class ParseError(PykgConfigError):
     """Generic error parsing a pkg-config file.

@@ -38,19 +38,17 @@ Stores information read from a pkg-config file.
 __version__ = "$Revision: $"
 # $Source$
 
-from copy import deepcopy
-from os.path import abspath, dirname, join, normpath
-import re
 import shlex
 import sys
+from copy import deepcopy
+from os.path import abspath, dirname, join, normpath
 
 from pykg_config.errorprinter import ErrorPrinter
-from pykg_config.exceptions import ParseError
-from pykg_config.pcfile import read_pc_file
-from pykg_config.substitute import substitute
-from pykg_config.props import *
 from pykg_config.options import Options
 from pykg_config.packagespeclist import parse_package_spec_list
+from pykg_config.pcfile import read_pc_file
+from pykg_config.props import *
+from pykg_config.substitute import substitute
 from pykg_config.version import BadVersionFormatError, Version
 
 ##############################################################################
@@ -81,15 +79,17 @@ class Package:
             self.clear()
 
     def __str__(self):
-        result = self.filename + "\nProperties:\n"
-        for key in self.properties:
-            if key == "requires" or key == "requires.private" or key == "conflicts":
-                result += "%s:\t%s\n" % (key, [str(a) for a in self.properties[key]])
+        result = f"{self.filename}\nProperties:\n"
+        for key, value in self.properties.items():
+            if key in {"requires", "requires.private", "conflicts"}:
+                result += f"{key}:\t{[str(a) for a in value]}\n"
             else:
-                result += "%s:\t%s\n" % (key, self.properties[key])
+                result += f"{key}:\t{value}\n"
+
         result += "Variables:\n"
-        for key in self.variables:
-            result += "%s:\t%s\n" % (key, self.variables[key])
+        for key, value in self.variables.items():
+            result += f"{key}:\t{value}\n"
+
         return result
 
     @property

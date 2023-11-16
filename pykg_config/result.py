@@ -205,11 +205,11 @@ class PkgCfgResult:
         dependencies."""
         for pkg in self.searched_packages:
             loaded_pkg = self._get_loaded_package(pkg.name)
-            if loaded_pkg.variables.has_key(variable):
+            if variable in loaded_pkg.variables:
                 return loaded_pkg.variables[variable]
         # Not in the searched-for packages, so try the dependencies
         for name, pkg in self.packages:
-            if pkg.variables.has_key(variable):
+            if variable in pkg.variables:
                 return pkg.variables[variable]
         return None
 

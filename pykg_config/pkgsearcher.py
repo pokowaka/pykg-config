@@ -36,15 +36,12 @@
 __version__ = "$Revision: $"
 # $Source$
 
-from os import getenv, listdir
 from os.path import isdir, isfile, join, split, splitext
+from typing import List, Dict, Optional, Tuple
 import sys
 
 if sys.platform == "win32":
-    if sys.version_info[0] < 3:
-        import _winreg
-    else:
-        import winreg as _winreg
+    import winreg
 
 
 from pykg_config.exceptions import PykgConfigError
@@ -68,15 +65,14 @@ class PackageNotFoundError(PykgConfigError):
     """A .pc file matching the given package name could not be found.
 
     Attributes:
-        pkgname -- The name of the package that could not be found.
-
+        pkgname (str): The name of the package that could not be found.
     """
 
     def __init__(self, pkgname):
         self.pkgname = pkgname
 
     def __str__(self):
-        return "No package '{0}' found".format(self.pkgname)
+        return f"No package '{self.pkgname}' found"
 
 
 class NoOpenableFilesError(PackageNotFoundError):
@@ -87,15 +83,14 @@ class BadPathError(PykgConfigError):
     """A specified path is bad in some way.
 
     Attributes:
-        path - The bad path.
-
+        path (str): The bad path.
     """
 
     def __init__(self, path):
         self.path = path
 
     def __str__(self):
-        return "Bad path: {0}".format(self.path)
+        return f"Bad path: {self.path}"
 
 
 class NotAFileError(BadPathError):
@@ -107,52 +102,88 @@ class NotAPCFileError(BadPathError):
 
 
 class TargetTriple:
+    """Represents a target triple containing architecture, operating system, ABI, and bitness.
+
+    Attributes:
+        arch (str): The architecture.
+        os (str): The operating system.
+        abi (str): The application binary interface.
+        bitness (str, optional): The bitness, if specified.
+
+    Methods:
+        __init__: Initializes a TargetTriple instance.
+        __str__: Returns a string representation of the target triple.
+    """
+
     __slots__ = ("arch", "bitness", "os", "abi")
 
-    def __init__(self, arch=None, os=None, abi=None, bitness=None) -> None:
-        pythonTripl = sys.implementation._multiarch.split("-")
-        self.arch = arch if arch is not None else pythonTripl[0]
-        self.os = os if os is not None else pythonTripl[1]
-        self.abi = abi if abi is not None else pythonTripl[2]
+    def __init__(
+        self, arch: str = None, os: str = None, abi: str = None, bitness: str = None
+    ) -> None:
+        """Initialize a TargetTriple instance.
+
+        Args:
+            arch (str, optional): The architecture.
+            os (str, optional): The operating system.
+            abi (str, optional): The application binary interface.
+            bitness (str, optional): The bitness.
+
+        Note:
+            If any of the optional parameters are not provided, they are derived
+            from the current Python implementation's multiarch information.
+        """
+        pythonTriple = sys.implementation._multiarch.split("-")
+        self.arch = arch if arch is not None else pythonTriple[0]
+        self.os = os if os is not None else pythonTriple[1]
+        self.abi = abi if abi is not None else pythonTriple[2]
         self.bitness = bitness
 
     def __str__(self) -> str:
+        """Return a string representation of the target triple."""
         return "-".join((self.arch, self.os, self.abi))
 
 
 thisArchTriple = TargetTriple()
+
 
 ##############################################################################
 # PkgSearcher object
 
 
 class PkgSearcher:
-    def __init__(self, globals):
+    def __init__(self, globals: Dict[str, List[str]]) -> None:
+        """Initialize the PkgSearcher.
+
+        Args:
+            globals: A dictionary containing global variables.
+
+        """
         # This is a dictionary of packages found in the search path. Each
         # package name is linked to a list of full paths to .pc files, in
         # order of priority. Earlier in the list is preferred over later.
-        self._known_pkgs = {}
-        self.globals = globals
+        self._known_pkgs: Dict[str, List[str]] = {}
+        self.globals: Dict[str, List[str]] = globals
 
         self._init_search_dirs()
 
-    def search_for_package(self, dep, globals):
+    def search_for_package(self, dep, globals) -> "Package":
         """Search for a package matching the given dependency specification
         (name and version restriction). Raise PackageNotFoundError if no
         matching package is found.
 
-        Returns a parsed package object.
+        Returns:
+            A parsed package object.
 
         """
         # Get a list of pc files matching the package name
         if isfile(dep.name) and splitext(dep.name)[1] == ".pc":
             # No need to search for a pc file
-            ErrorPrinter().debug_print("Using provided pc file %s", (dep.name))
+            ErrorPrinter().debug_print(f"Using provided pc file {dep.name}")
             pcfiles = [dep.name]
         else:
-            ErrorPrinter().debug_print("Searching for package matching %s", (dep))
+            ErrorPrinter().debug_print(f"Searching for package matching {dep}")
             pcfiles = self.search_for_pcfile(dep.name)
-        ErrorPrinter().debug_print("Found .pc files: %s", (str(pcfiles)))
+        ErrorPrinter().debug_print(f"Found .pc files: {str(pcfiles)}")
         if not pcfiles:
             raise PackageNotFoundError(str(dep))
         # Filter the list by those files that meet the version specification
@@ -161,12 +192,7 @@ class PkgSearcher:
             try:
                 pkgs.append(Package(pcfile, globals))
             except IOError as e:
-                ErrorPrinter().verbose_error(
-                    "Failed to open '{0}': \
-{1}".format(
-                        pcfile, e.strerror
-                    )
-                )
+                ErrorPrinter().verbose_error(f"Failed to open '{pcfile}': {e.strerror}")
                 continue
             except UndefinedVarError as e:
                 raise UndefinedVarError(e.variable, pcfile)
@@ -178,13 +204,13 @@ class PkgSearcher:
             raise NoOpenableFilesError(str(dep))
         pkgs = [pkg for pkg in pkgs if dep.meets_requirement(pkg.properties["version"])]
         ErrorPrinter().debug_print(
-            "Filtered to %s", ([pkg.properties["name"] for pkg in pkgs])
+            f"Filtered to {[pkg.properties['name'] for pkg in pkgs]}"
         )
         if not pkgs:
             raise PackageNotFoundError(str(dep))
         return pkgs[0]
 
-    def search_for_pcfile(self, pkgname):
+    def search_for_pcfile(self, pkgname: str) -> List[str]:
         """Search for one or more pkg-config files matching the given
         package name. If a matching pkg-config file cannot be found,
         an empty list will be returned.
@@ -192,14 +218,19 @@ class PkgSearcher:
         The dictionary of known packages is stored in _known_pkgs and is
         initialised by calling init_search_dirs().
 
+        Args:
+            pkgname: The name of the package.
+
+        Returns:
+            A list of paths to matching pkg-config files.
+
         """
-        ErrorPrinter().debug_print("Looking for files matching %s", (pkgname))
+        ErrorPrinter().debug_print(f"Looking for files matching {pkgname}")
         if Options().get_option("prefer_uninstalled"):
             if pkgname + "-uninstalled" in self._known_pkgs:
                 # Prefer uninstalled version of a package
                 ErrorPrinter().debug_print(
-                    "Using uninstalled package %s",
-                    (self._known_pkgs[pkgname + "-uninstalled"]),
+                    f"Using uninstalled package {self._known_pkgs[pkgname + '-uninstalled']}"
                 )
                 return self._known_pkgs[pkgname + "-uninstalled"]
             elif Options().get_option("uninstalled_only"):
@@ -207,7 +238,7 @@ class PkgSearcher:
                 return []
         if pkgname in self._known_pkgs:
             ErrorPrinter().debug_print(
-                "Using any package: %s", (self._known_pkgs[pkgname])
+                f"Using any package: {self._known_pkgs[pkgname]}"
             )
             return self._known_pkgs[pkgname]
         else:
@@ -219,6 +250,9 @@ class PkgSearcher:
         a description (from the .pc file) for each, and also a list of any
         errors encountered.
 
+        Returns:
+            A tuple containing a list of packages and a list of errors.
+
         """
         result = []
         errors = []
@@ -228,17 +262,12 @@ class PkgSearcher:
                 pkg = Package(self._known_pkgs[pkgname][0])
             except IOError as e:
                 ErrorPrinter().verbose_error(
-                    "Failed to open '{0}': \
-{1}".format(
-                        self._known_pkgs[pkgname][0], e.strerror
-                    )
+                    f"Failed to open '{self._known_pkgs[pkgname][0]}': {e.strerror}"
                 )
                 continue
             except UndefinedVarError as e:
                 errors.append(
-                    "Variable '{0}' not defined in '{1}'".format(
-                        e, self._known_pkgs[pkgname][0]
-                    )
+                    f"Variable '{e}' not defined in '{self._known_pkgs[pkgname][0]}'"
                 )
                 continue
             result.append(
@@ -246,7 +275,7 @@ class PkgSearcher:
             )
         return result, errors
 
-    def _init_search_dirs(self):
+    def _init_search_dirs(self) -> None:
         # Append dirs in PKG_CONFIG_PATH
         if "config_path" in self.globals and self.globals["config_path"]:
             for d in self.globals["config_path"]:
@@ -262,34 +291,28 @@ class PkgSearcher:
         if sys.platform == "win32":
             key_path = "Software\\pkg-config\\PKG_CONFIG_PATH"
             for root in (
-                (_winreg.HKEY_CURRENT_USER, "HKEY_CURRENT_USER"),
-                (_winreg.HKEY_LOCAL_MACHINE, "HKEY_LOCAL_MACHINE"),
+                (winreg.HKEY_CURRENT_USER, "HKEY_CURRENT_USER"),
+                (winreg.HKEY_LOCAL_MACHINE, "HKEY_LOCAL_MACHINE"),
             ):
                 try:
-                    key = _winreg.OpenKey(root[0], key_path)
+                    key = winreg.OpenKey(root[0], key_path)
                 except WindowsError as e:
                     ErrorPrinter().debug_print(
-                        "Failed to add paths from \
-{0}\\{1}: {2}".format(
-                            root[1], key_path, e
-                        )
+                        f"Failed to add paths from {root[1]}\\{key_path}: {e}"
                     )
                     continue
                 try:
-                    num_subkeys, num_vals, modified = _winreg.QueryInfoKey(key)
+                    num_subkeys, num_vals, modified = winreg.QueryInfoKey(key)
                     for ii in range(num_vals):
-                        name, val, type = _winreg.EnumValue(key, ii)
-                        if type == _winreg.REG_SZ and isdir(val):
+                        name, val, type = winreg.EnumValue(key, ii)
+                        if type == winreg.REG_SZ and isdir(val):
                             self._append_packages(val)
                 except WindowsError as e:
                     ErrorPrinter().debug_print(
-                        "Failed to add paths from \
-{0}\\{1}: {2}".format(
-                            root[1], key_path, e
-                        )
+                        f"Failed to add paths from {root[1]}\\{key_path}: {e}"
                     )
                 finally:
-                    _winreg.CloseKey(key)
+                    winreg.CloseKey(key)
         # Default path: If a hard-coded path has been set, use that (excluding
         # paths that don't exist)
         if "prefix" in self.globals:
@@ -307,7 +330,7 @@ class PkgSearcher:
             else:
                 suffix = ""
             dirs2check = (
-                join(prefix, "lib" + suffix),
+                join(prefix, f"lib{suffix}"),
                 join(prefix, "lib", str(thisArchTriple)),
                 join(prefix, "share"),
                 join(prefix, "lib"),
@@ -317,8 +340,8 @@ class PkgSearcher:
                 if isdir(d):
                     self._append_packages(d)
 
-    def _append_packages(self, d):
-        ErrorPrinter().debug_print("Adding .pc files from %s to known packages", (d))
+    def _append_packages(self, d: str) -> None:
+        ErrorPrinter().debug_print(f"Adding .pc files from {d} to known packages")
         files = listdir(d)
         for filename in files:
             if filename.endswith(".pc"):
@@ -330,23 +353,31 @@ class PkgSearcher:
                     if full_path not in self._known_pkgs[name]:
                         self._known_pkgs[name].append(full_path)
                         ErrorPrinter().debug_print(
-                            "Package %s has a duplicate file: %s",
-                            (name, self._known_pkgs[name]),
+                            f"Package {name} has a duplicate file: {self._known_pkgs[name]}"
                         )
                 else:
                     self._known_pkgs[name] = [full_path]
 
-    def _split_char(self):
+    def _split_char(self) -> str:
         # Get the character used to split a list of directories.
         if sys.platform == "win32":
             return ";"
         return ":"
 
-    def _can_open_file(self, filename):
+    def _can_open_file(self, filename: str) -> bool:
+        """Check if a file can be opened.
+
+        Args:
+            filename: The name of the file.
+
+        Returns:
+            A boolean indicating whether the file can be opened.
+
+        """
         try:
             result = open(filename, "r")
         except IOError as e:
-            ErrorPrinter().debug_print("Could not open {0}".format(filename))
+            ErrorPrinter().debug_print(f"Could not open {filename}")
             search_string = Options().get_option("search_string").split()
             if (
                 not search_string and Options().get_option("command") == "list-all"
@@ -354,7 +385,7 @@ class PkgSearcher:
                 p.startswith(split(filename)[-1].split(".")[0]) for p in search_string
             ]:
                 ErrorPrinter().verbose_error(
-                    "Failed to open '{0}': {1}".format(filename, e.strerror)
+                    f"Failed to open '{filename}': {e.strerror}"
                 )
             return False
         return True

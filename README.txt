@@ -12,9 +12,7 @@ identical output from pykg-config.
 Requirements
 ------------
 
-pykg-config uses the new string formatting operations that were introduced in
-Python 2.6. It will not function with an earlier version of Python. It has been
-been tested with Python 2.6, 2.7, 3.1, 3.2, 3.3, and 3.4.
+pykg-config requires python 3.6 or later.
 
 
 Installation

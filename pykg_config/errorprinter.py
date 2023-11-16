@@ -44,7 +44,7 @@ from pykg_config.options import Options
 
 class ErrorPrinter(object):
     def __new__(cls, *p, **k):
-        if not "_the_instance" in cls.__dict__:
+        if "_the_instance" not in cls.__dict__:
             cls._the_instance = object.__new__(cls)
         return cls._the_instance
 
@@ -57,19 +57,19 @@ class ErrorPrinter(object):
         if not Options().get_option("debug"):
             return
         if hasattr(self, "vars"):
-            for var in self.vars:
-                line = line.replace("%(" + var + ")", self.vars[var])
+            for key, value in self.vars.items():
+                line = line.replace(f"%({key})", value)
         if args is not None:
             line = line % args
-        Options().get_option("error_dest").write(line + "\n")
+        Options().get_option("error_dest").write(f"{line}\n")
 
     def error(self, line, args=None):
         if hasattr(self, "vars"):
-            for var in self.vars:
-                line = line.replace("%(" + var + ")", self.vars[var])
+            for key, value in self.vars.items():
+                line = line.replace(f"%({key})", value)
         if args is not None:
             line = line % args
-        Options().get_option("error_dest").write(line + "\n")
+        Options().get_option("error_dest").write(f"{line}\n")
 
     def verbose_error(self, line, args=None):
         if not Options().get_option("print_errors"):

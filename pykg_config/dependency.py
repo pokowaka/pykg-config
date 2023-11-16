@@ -40,55 +40,53 @@ __version__ = "$Revision: $"
 # $Source$
 
 from pykg_config.operators import *
+from pykg_config.version import Version
 
 ##############################################################################
 # Dependency class
 
 
 class Dependency:
-    def __init__(self, name, operator, version):
+    def __init__(self, name: str, operator: str, version: Version) -> None:
         self.name = name
         self.operator = operator
         self.version = version
 
-    def __eq__(self, other):
-        if (
+    def __eq__(self, other: "Dependency") -> bool:
+        return (
             self.name == other.name
             and self.operator == other.operator
             and self.version == other.version
-        ):
-            return True
-        return False
+        )
 
-    def __ne__(self, other):
-        if (
+    def __ne__(self, other: "Dependency") -> bool:
+        return (
             self.name != other.name
             or self.operator != other.operator
             or self.version != other.version
-        ):
-            return True
-        return False
+        )
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.version.is_empty():
             return self.name
-        return self.name + operator_to_text(self.operator) + str(self.version)
+        return f"{self.name}{operator_to_text(self.operator)}{self.version}"
 
-    def meets_requirement(self, other_version):
+    def meets_requirement(self, other_version: Version) -> bool:
         if self.operator == ALWAYS_MATCH:
             return True
         elif self.operator == LESS_THAN:
-            return other_version.__lt__(self.version)
+            return other_version < self.version
         elif self.operator == LESS_THAN_EQUAL:
-            return other_version.__le__(self.version)
+            return other_version <= self.version
         elif self.operator == EQUAL:
-            return other_version.__eq__(self.version)
+            return other_version == self.version
         elif self.operator == NOT_EQUAL:
-            return other_version.__ne__(self.version)
+            return other_version != self.version
         elif self.operator == GREATER_THAN_EQUAL:
-            return other_version.__ge__(self.version)
-        elif self.operator == GREATHER_THAN:
-            return other_version.__gt__(self.version)
+            return other_version >= self.version
+        elif self.operator == GREATER_THAN:
+            return other_version > self.version
+        return False
 
 
 # vim: tw=79

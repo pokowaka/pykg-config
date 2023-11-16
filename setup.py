@@ -30,19 +30,18 @@
 __version__ = "$Revision: $"
 # $Source$
 
-from setuptools import setup
-from distutils.command.build_py import build_py
-from distutils import log
-from pathlib import Path
 import sys
+from distutils import log
+from distutils.command.build_py import build_py
+from pathlib import Path
+
+from setuptools import setup
 
 
 def check_path_is_dir(p):
     p = Path(p)
-    if not p.isdir():
-        sys.stderr.write(
-            "Specified PC path {} is not a directory or does not exist".format(p)
-        )
+    if not p.is_dir():
+        sys.stderr.write(f"Specified PC path {p} is not a directory or does not exist")
 
 
 def split_char():
