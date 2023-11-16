@@ -40,20 +40,22 @@ import sys
 def check_path_is_dir(p):
     p = Path(p)
     if not p.isdir():
-        sys.stderr.write('Specified PC path {} is not a directory or does not exist'.format(p))
+        sys.stderr.write(
+            "Specified PC path {} is not a directory or does not exist".format(p)
+        )
 
 
 def split_char():
     # Get the character used to split a list of directories.
-    if sys.platform == 'win32':
-        return ';'
-    return ':'
+    if sys.platform == "win32":
+        return ";"
+    return ":"
 
 
 class BuildWithConfigure(build_py):
     user_options = build_py.user_options + [
-        ('with-pc-path=', None, 'default search path for .pc files'),
-        ]
+        ("with-pc-path=", None, "default search path for .pc files"),
+    ]
 
     def __init__(self, dist):
         build_py.__init__(self, dist)
@@ -68,14 +70,14 @@ class BuildWithConfigure(build_py):
 
     def run(self):
         build_py.run(self)
-        config_dest =  Path(self.build_lib) / 'pykg_config' / 'install_config.py'
+        config_dest = Path(self.build_lib) / "pykg_config" / "install_config.py"
         log.info("creating configuration file at %s", config_dest)
         if self.with_pc_path:
             config_dest.write_text('pc_path = "' + self.with_pc_path + '"\n')
         else:
-            config_dest.write_text('pc_path = None\n')
+            config_dest.write_text("pc_path = None\n")
         # TODO: should byte-compile the config file here (see
         # build_py.byte_compile())
 
 
-setup(cmdclass={'build_py':BuildWithConfigure}, use_scm_version=True)
+setup(cmdclass={"build_py": BuildWithConfigure}, use_scm_version=True)

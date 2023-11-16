@@ -49,6 +49,7 @@ from pykg_config.options import Options
 ##############################################################################
 # Exceptions
 
+
 class PackageConflictError(PykgConfigError):
     """A package listed in a conflict list was found.
 
@@ -57,44 +58,50 @@ class PackageConflictError(PykgConfigError):
         conflict -- The package causing the conflict.
 
     """
+
     def __init__(self, pkgname, conflict):
         self.pkgname = pkgname
         self.conflict = conflict
 
     def __str__(self):
-        return '{0} conflicts with {1}'.format(self.pkgname, self.conflict)
+        return "{0} conflicts with {1}".format(self.pkgname, self.conflict)
 
 
 class NoPackagesSpecifiedError(PykgConfigError):
     """No packages were specified in a list of packages to search for."""
+
     pass
+
 
 ##############################################################################
 # Private utility functions
 
+
 def _filter_duplicates(source):
     # This maintains the order.
     ret = []
-    seen = { }
+    seen = {}
     for it in reversed(source):
-         if it not in seen:
-              ret.append(it)
-              seen[it] = 1
+        if it not in seen:
+            ret.append(it)
+            seen[it] = 1
     ret.reverse()
     return ret
+
 
 ##############################################################################
 # PkgCfgResult object
 
+
 class PkgCfgResult:
     def __init__(self, globals):
         # Different platforms may use different flags and extensions
-        if sys.platform == 'win32' and Options().get_option('use_msvc_syntax'):
-            self.lib_path_flag = '/libpath:'
-            self.lib_flag = ''
+        if sys.platform == "win32" and Options().get_option("use_msvc_syntax"):
+            self.lib_path_flag = "/libpath:"
+            self.lib_flag = ""
         else:
-            self.lib_path_flag = '-L'
-            self.lib_flag = '-l'
+            self.lib_path_flag = "-L"
+            self.lib_flag = "-l"
         # Can't use a dictionary for the loaded packages list because the
         # ordering must be maintained (when Python 3.1 is standard, switch to
         # collections.OrderedDict).
@@ -104,8 +111,9 @@ class PkgCfgResult:
         self.globals = globals
 
     def __str__(self):
-        packages = ['%s-%s' % (pkg[0], pkg[1].properties['version']) \
-                    for pkg in self.packages]
+        packages = [
+            "%s-%s" % (pkg[0], pkg[1].properties["version"]) for pkg in self.packages
+        ]
         return str(packages)
 
     def find_packages(self, pkglist, recurse):
@@ -127,64 +135,68 @@ class PkgCfgResult:
     def get_big_i_flags(self):
         result = []
         for name, pkg in self.packages:
-            result += ['-I' + dir for dir in pkg.properties['include_dirs']]
+            result += ["-I" + dir for dir in pkg.properties["include_dirs"]]
         return self._format_list(_filter_duplicates(result))
 
     def get_other_i_flags(self):
         result = []
         for name, pkg in self.packages:
-            result += pkg.properties['other_cflags']
+            result += pkg.properties["other_cflags"]
         return self._format_list(_filter_duplicates(result))
 
     def get_cflags(self):
         result = []
         for name, pkg in self.packages:
-            result += pkg.properties['other_cflags']
-            result += ['-I' + dir for dir in pkg.properties['include_dirs']]
+            result += pkg.properties["other_cflags"]
+            result += ["-I" + dir for dir in pkg.properties["include_dirs"]]
         return self._format_list(_filter_duplicates(result))
 
     def get_l_flags(self):
         result = []
         for name, pkg in self.packages:
-            result += [self.lib_flag + lib for lib in pkg.properties['libs']]
-            if Options().get_option('private_libs'):
-                result += [self.lib_flag + lib \
-                                for lib in pkg.properties['private.libs']]
+            result += [self.lib_flag + lib for lib in pkg.properties["libs"]]
+            if Options().get_option("private_libs"):
+                result += [
+                    self.lib_flag + lib for lib in pkg.properties["private.libs"]
+                ]
         return self._format_list(_filter_duplicates(result))
 
     def get_big_l_flags(self):
         result = []
         for name, pkg in self.packages:
-            result += [self.lib_path_flag + path \
-                        for path in pkg.properties['libpaths']]
-            if Options().get_option('private_libs'):
-                result += [self.lib_path_flag + path \
-                                for path in pkg.properties['private.libpaths']]
+            result += [self.lib_path_flag + path for path in pkg.properties["libpaths"]]
+            if Options().get_option("private_libs"):
+                result += [
+                    self.lib_path_flag + path
+                    for path in pkg.properties["private.libpaths"]
+                ]
         return self._format_list(_filter_duplicates(result))
 
     def get_other_l_flags(self):
         result = []
         for name, pkg in self.packages:
-            result += pkg.properties['otherlibs']
-            if Options().get_option('private_libs'):
-                result += pkg.properties['private.otherlibs']
+            result += pkg.properties["otherlibs"]
+            if Options().get_option("private_libs"):
+                result += pkg.properties["private.otherlibs"]
         return self._format_list(_filter_duplicates(result))
 
     def get_all_lib_flags(self):
         result = []
         for name, pkg in self.packages:
-            result += pkg.properties['otherlibs']
-            if Options().get_option('private_libs'):
-                result += pkg.properties['private.otherlibs']
-            result += [self.lib_path_flag + path \
-                        for path in pkg.properties['libpaths']]
-            if Options().get_option('private_libs'):
-                result += [self.lib_path_flag + path \
-                                for path in pkg.properties['private.libpaths']]
-            result += [self.lib_flag + lib for lib in pkg.properties['libs']]
-            if Options().get_option('private_libs'):
-                result += [self.lib_flag + lib \
-                                for lib in pkg.properties['private.libs']]
+            result += pkg.properties["otherlibs"]
+            if Options().get_option("private_libs"):
+                result += pkg.properties["private.otherlibs"]
+            result += [self.lib_path_flag + path for path in pkg.properties["libpaths"]]
+            if Options().get_option("private_libs"):
+                result += [
+                    self.lib_path_flag + path
+                    for path in pkg.properties["private.libpaths"]
+                ]
+            result += [self.lib_flag + lib for lib in pkg.properties["libs"]]
+            if Options().get_option("private_libs"):
+                result += [
+                    self.lib_flag + lib for lib in pkg.properties["private.libs"]
+                ]
         return self._format_list(_filter_duplicates(result))
 
     def get_variable_value(self, variable):
@@ -214,24 +226,24 @@ class PkgCfgResult:
     def get_package_version(self, name):
         pkg = self._get_loaded_package(name)
         if pkg:
-            return pkg.properties['version']
+            return pkg.properties["version"]
         return None
 
     def get_searched_pkgs_versions(self):
         result = []
         for pkg in self.searched_packages:
             loaded_pkg = self._get_loaded_package(pkg.name)
-            result.append(loaded_pkg.properties['version'])
+            result.append(loaded_pkg.properties["version"])
         return result
 
     def get_searched_pkg_list(self):
         return self.searched_packages
 
     def _format_list(self, result_list):
-        result = ''
-        for item in ['{0} '.format(x) for x in result_list]:
+        result = ""
+        for item in ["{0} ".format(x) for x in result_list]:
             result += item
-        return result[:-1] # Strip the last space
+        return result[:-1]  # Strip the last space
 
     def _load_dependencies(self, dependencies, recurse):
         # Search for and load all packages listed in dependencies,
@@ -239,35 +251,37 @@ class PkgCfgResult:
         # and checking for conflicts as well.
         # For d in deps:
         for dep in dependencies:
-        # 0. Check if this package is already loaded
+            # 0. Check if this package is already loaded
             if self._get_loaded_package(dep.name):
                 continue
-        # 1. Search for a package matching the spec
+            # 1. Search for a package matching the spec
             pkg = self.searcher.search_for_package(dep, self.globals)
-        # 2. Check for conflicts
-            for conflict in pkg.properties['conflicts']:
+            # 2. Check for conflicts
+            for conflict in pkg.properties["conflicts"]:
                 try:
-                    ErrorPrinter().debug_print('Searching for conflict %s',
-                                               conflict.name)
+                    ErrorPrinter().debug_print(
+                        "Searching for conflict %s", conflict.name
+                    )
                     self.searcher.search_for_package(conflict)
                 except PackageNotFoundError:
                     # If the conflict was not found, move on to the next
-                    ErrorPrinter().debug_print('Conflict not found.')
+                    ErrorPrinter().debug_print("Conflict not found.")
                     continue
                 # Conflict was found - what to do?
                 raise PackageConflictError(pkg.name, conflict)
-        # 3. Sanity check this package
+            # 3. Sanity check this package
             pkg.sanity_check()
-        # 4. Add this package to the dictionary now to avoid infinite recursion
+            # 4. Add this package to the dictionary now to avoid infinite recursion
             self._add_package(dep.name, pkg)
-        # 5. Recursively load requireds
+            # 5. Recursively load requireds
             if recurse:
                 # requires.private includes requires
-                self._load_dependencies(pkg.properties['requires.private'], recurse)
+                self._load_dependencies(pkg.properties["requires.private"], recurse)
 
     def _add_package(self, name, newpkg):
-        ErrorPrinter().debug_print('Adding %s to list of packages as %s',
-                                   (newpkg.filename, name))
+        ErrorPrinter().debug_print(
+            "Adding %s to list of packages as %s", (newpkg.filename, name)
+        )
         self.packages.append((name, newpkg))
 
     def _get_loaded_package(self, name):
@@ -278,4 +292,3 @@ class PkgCfgResult:
 
 
 # vim: tw=79
-

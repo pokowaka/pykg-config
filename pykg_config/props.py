@@ -41,32 +41,35 @@ __version__ = "$Revision: $"
 
 from pykg_config.version import Version
 
-empty_raw_props = {'name': '',
-                   'description': '',
-                   'url': '',
-                   'version': '',
-                   'requires': '',
-                   'requires.private': '',
-                   'conflicts': '',
-                   'cflags': '',
-                   'libs': '',
-                   'libs.private': ''}
-empty_processed_props = {'name': '',
-                         'description': 'No description',
-                         'url': '',
-                         'version': Version(),
-                         'requires': [],
-                         'requires.private': [],
-                         'conflicts': [],
-                         'include_dirs': [],
-                         'other_cflags': [],
-                         'libs': [],
-                         'libpaths': [],
-                         'otherlibs': [],
-                         'private.libs': [],
-                         'private.libpaths': [],
-                         'private.otherlibs': []}
+empty_raw_props = {
+    "name": "",
+    "description": "",
+    "url": "",
+    "version": "",
+    "requires": "",
+    "requires.private": "",
+    "conflicts": "",
+    "cflags": "",
+    "libs": "",
+    "libs.private": "",
+}
+empty_processed_props = {
+    "name": "",
+    "description": "No description",
+    "url": "",
+    "version": Version(),
+    "requires": [],
+    "requires.private": [],
+    "conflicts": [],
+    "include_dirs": [],
+    "other_cflags": [],
+    "libs": [],
+    "libpaths": [],
+    "otherlibs": [],
+    "private.libs": [],
+    "private.libpaths": [],
+    "private.otherlibs": [],
+}
 
 
 # vim: tw=79
-

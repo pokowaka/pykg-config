@@ -33,5 +33,3 @@
 
 __version__ = "$Revision: $"
 # $Source$
-
-

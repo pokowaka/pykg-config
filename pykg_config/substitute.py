@@ -47,6 +47,7 @@ from pykg_config.exceptions import PykgConfigError
 ##############################################################################
 # Exceptions
 
+
 class InfiniteRecursionError(PykgConfigError):
     """A variable refers to itself, which will cause infinite recursion
     when substitution is performed.
@@ -55,6 +56,7 @@ class InfiniteRecursionError(PykgConfigError):
         variable -- The variable that refers to itself.
 
     """
+
     def __init__(self, variable):
         self.variable = variable
 
@@ -70,6 +72,7 @@ class UndefinedVarError(PykgConfigError):
         pkgfile -- The file with the error. Not always set.
 
     """
+
     def __init__(self, variable, pkgfile=None):
         self.variable = variable
         self.pkgfile = pkgfile
@@ -80,6 +83,7 @@ class UndefinedVarError(PykgConfigError):
 
 ##############################################################################
 # Public functions
+
 
 def substitute(value, replacements, globals={}):
     """Substitutes variables once.
@@ -102,31 +106,31 @@ def substitute(value, replacements, globals={}):
 ##############################################################################
 # Private functions
 
+
 def replace_in_string(value, name, substitution):
     # Replace all instances of name in value with substitution
     to_replace = get_to_replace_re(name)
     # Make sure backslashes are escaped (e.g. '\g' or '\0', ... are escaped)
-    substitution = substitution.replace('\\', '\\\\')
+    substitution = substitution.replace("\\", "\\\\")
     return to_replace.sub(substitution, value)
 
 
 def get_to_replace_re(name):
     # Build the re object that matches a given substition name
-    return re.compile('(?<!\$)\$\{%s\}' % name, re.U)
+    return re.compile("(?<!\$)\$\{%s\}" % name, re.U)
 
 
 def get_all_substitutions(value):
-    found_names = re.findall('(?<!\$)\${(?P<name>[\w.]+)\}', value, flags=re.U)
+    found_names = re.findall("(?<!\$)\${(?P<name>[\w.]+)\}", value, flags=re.U)
     names = []
     for name in found_names:
         if name not in names:
-            names.append (name)
+            names.append(name)
     return names
 
 
 def collapse_escapes(value):
-    return value.replace('$$', '$')
+    return value.replace("$$", "$")
 
 
 # vim: tw=79
-

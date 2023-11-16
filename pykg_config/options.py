@@ -41,11 +41,13 @@ from pykg_config.exceptions import PykgConfigError
 ##############################################################################
 # Exceptions
 
+
 class NoSuchOptionError(PykgConfigError):
     """The requested option has not been set.
 
     Attributes:
         option -- The option that doesn't exist."""
+
     def __init__(self, option):
         self.option = option
 
@@ -56,41 +58,44 @@ class NoSuchOptionError(PykgConfigError):
 ##############################################################################
 # Options singleton class
 
+
 class Options(object):
     def __new__(cls, *p, **k):
-        if not '_the_instance' in cls.__dict__:
+        if not "_the_instance" in cls.__dict__:
             cls._the_instance = object.__new__(cls)
         return cls._the_instance
 
     def init_options(self):
-        self.options = {'use_msvc_syntax': True,
-                        'dont_define_prefix': False,
-                        'prefix_variable': 'prefix',
-                        'verbose': False,
-                        'pc_path': '',
-                        'uninstalled_only': False,
-                        'prefer_uninstalled': True,
-                        'pc_sysrootdir': '/',
-                        'pc_topbuilddir': '',
-                        'print_errors': True,
-                        'short_errors': False,
-                        'error_dest': sys.stderr,
-                        'debug': False,
-                        'search_string': '',
-                        'private_libs': False,
-                        'forbidden_libdirs': [],
-                        'forbidden_cflags': [],
-                        'is_64bit': False,
-                        'full_compatibility': False,
-                        'normalise_paths': True}
+        self.options = {
+            "use_msvc_syntax": True,
+            "dont_define_prefix": False,
+            "prefix_variable": "prefix",
+            "verbose": False,
+            "pc_path": "",
+            "uninstalled_only": False,
+            "prefer_uninstalled": True,
+            "pc_sysrootdir": "/",
+            "pc_topbuilddir": "",
+            "print_errors": True,
+            "short_errors": False,
+            "error_dest": sys.stderr,
+            "debug": False,
+            "search_string": "",
+            "private_libs": False,
+            "forbidden_libdirs": [],
+            "forbidden_cflags": [],
+            "is_64bit": False,
+            "full_compatibility": False,
+            "normalise_paths": True,
+        }
 
     def set_option(self, option, value):
-        if not hasattr(self, 'options'):
+        if not hasattr(self, "options"):
             self.init_options()
         self.options[option] = value
 
     def get_option(self, option):
-        if not hasattr(self, 'options'):
+        if not hasattr(self, "options"):
             self.init_options()
         if not option in self.options:
             raise NoSuchOptionError(option)
@@ -98,4 +103,3 @@ class Options(object):
 
 
 # vim: tw=79
-

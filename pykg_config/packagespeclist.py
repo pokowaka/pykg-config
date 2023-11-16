@@ -41,14 +41,18 @@ import re
 from pykg_config.version import Version
 from pykg_config.dependency import *
 
+
 def parse_package_spec_list(value):
     """Parses a textual list of package specs into a list of Dependency
     objects containing name, and possibly a version restriction.
 
     """
     result = []
-    matches = re.findall('(?P<name>[^\s,!=<>]+)(,|\s*(?P<operator>[!=<>]+)\s*(?P<version>[^\s,]+))?',
-               value.strip(), re.U)
+    matches = re.findall(
+        "(?P<name>[^\s,!=<>]+)(,|\s*(?P<operator>[!=<>]+)\s*(?P<version>[^\s,]+))?",
+        value.strip(),
+        re.U,
+    )
 
     for package in matches:
         name = package[0]
@@ -57,9 +61,8 @@ def parse_package_spec_list(value):
             version = Version(package[3])
         else:
             version = Version()
-        result.append (Dependency(name, operator, version))
+        result.append(Dependency(name, operator, version))
     return result
 
 
 # vim: tw=79
-

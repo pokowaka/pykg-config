@@ -39,7 +39,8 @@ __version__ = "$Revision: $"
 from os import getenv, listdir
 from os.path import isdir, isfile, join, split, splitext
 import sys
-if sys.platform == 'win32':
+
+if sys.platform == "win32":
     if sys.version_info[0] < 3:
         import _winreg
     else:
@@ -62,6 +63,7 @@ except ImportError:
 ##############################################################################
 # Exceptions
 
+
 class PackageNotFoundError(PykgConfigError):
     """A .pc file matching the given package name could not be found.
 
@@ -69,6 +71,7 @@ class PackageNotFoundError(PykgConfigError):
         pkgname -- The name of the package that could not be found.
 
     """
+
     def __init__(self, pkgname):
         self.pkgname = pkgname
 
@@ -87,11 +90,12 @@ class BadPathError(PykgConfigError):
         path - The bad path.
 
     """
+
     def __init__(self, path):
         self.path = path
 
     def __str__(self):
-        return 'Bad path: {0}'.format(self.path)
+        return "Bad path: {0}".format(self.path)
 
 
 class NotAFileError(BadPathError):
@@ -101,10 +105,11 @@ class NotAFileError(BadPathError):
 class NotAPCFileError(BadPathError):
     pass
 
+
 class TargetTriple:
     __slots__ = ("arch", "bitness", "os", "abi")
 
-    def __init__(self, arch = None, os = None, abi = None, bitness = None) -> None:
+    def __init__(self, arch=None, os=None, abi=None, bitness=None) -> None:
         pythonTripl = sys.implementation._multiarch.split("-")
         self.arch = arch if arch is not None else pythonTripl[0]
         self.os = os if os is not None else pythonTripl[1]
@@ -114,10 +119,12 @@ class TargetTriple:
     def __str__(self) -> str:
         return "-".join((self.arch, self.os, self.abi))
 
+
 thisArchTriple = TargetTriple()
 
 ##############################################################################
 # PkgSearcher object
+
 
 class PkgSearcher:
     def __init__(self, globals):
@@ -138,14 +145,14 @@ class PkgSearcher:
 
         """
         # Get a list of pc files matching the package name
-        if isfile(dep.name) and splitext(dep.name)[1] == '.pc':
+        if isfile(dep.name) and splitext(dep.name)[1] == ".pc":
             # No need to search for a pc file
-            ErrorPrinter().debug_print('Using provided pc file %s', (dep.name))
+            ErrorPrinter().debug_print("Using provided pc file %s", (dep.name))
             pcfiles = [dep.name]
         else:
-            ErrorPrinter().debug_print('Searching for package matching %s', (dep))
+            ErrorPrinter().debug_print("Searching for package matching %s", (dep))
             pcfiles = self.search_for_pcfile(dep.name)
-        ErrorPrinter().debug_print('Found .pc files: %s', (str(pcfiles)))
+        ErrorPrinter().debug_print("Found .pc files: %s", (str(pcfiles)))
         if not pcfiles:
             raise PackageNotFoundError(str(dep))
         # Filter the list by those files that meet the version specification
@@ -154,8 +161,12 @@ class PkgSearcher:
             try:
                 pkgs.append(Package(pcfile, globals))
             except IOError as e:
-                ErrorPrinter().verbose_error("Failed to open '{0}': \
-{1}".format(pcfile, e.strerror))
+                ErrorPrinter().verbose_error(
+                    "Failed to open '{0}': \
+{1}".format(
+                        pcfile, e.strerror
+                    )
+                )
                 continue
             except UndefinedVarError as e:
                 raise UndefinedVarError(e.variable, pcfile)
@@ -165,10 +176,10 @@ class PkgSearcher:
             # the standard "Package not found" error when a bad file is
             # encountred.
             raise NoOpenableFilesError(str(dep))
-        pkgs = [pkg for pkg in pkgs \
-                if dep.meets_requirement(pkg.properties['version'])]
-        ErrorPrinter().debug_print('Filtered to %s',
-                                   ([pkg.properties['name'] for pkg in pkgs]))
+        pkgs = [pkg for pkg in pkgs if dep.meets_requirement(pkg.properties["version"])]
+        ErrorPrinter().debug_print(
+            "Filtered to %s", ([pkg.properties["name"] for pkg in pkgs])
+        )
         if not pkgs:
             raise PackageNotFoundError(str(dep))
         return pkgs[0]
@@ -182,22 +193,25 @@ class PkgSearcher:
         initialised by calling init_search_dirs().
 
         """
-        ErrorPrinter().debug_print('Looking for files matching %s', (pkgname))
-        if Options().get_option('prefer_uninstalled'):
-            if pkgname + '-uninstalled' in self._known_pkgs:
+        ErrorPrinter().debug_print("Looking for files matching %s", (pkgname))
+        if Options().get_option("prefer_uninstalled"):
+            if pkgname + "-uninstalled" in self._known_pkgs:
                 # Prefer uninstalled version of a package
-                ErrorPrinter().debug_print('Using uninstalled package %s',
-                                           (self._known_pkgs[pkgname + '-uninstalled']))
-                return self._known_pkgs[pkgname + '-uninstalled']
-            elif Options().get_option('uninstalled_only'):
-                ErrorPrinter().debug_print('Uninstalled only, no suitable package.')
+                ErrorPrinter().debug_print(
+                    "Using uninstalled package %s",
+                    (self._known_pkgs[pkgname + "-uninstalled"]),
+                )
+                return self._known_pkgs[pkgname + "-uninstalled"]
+            elif Options().get_option("uninstalled_only"):
+                ErrorPrinter().debug_print("Uninstalled only, no suitable package.")
                 return []
         if pkgname in self._known_pkgs:
-            ErrorPrinter().debug_print('Using any package: %s',
-                             (self._known_pkgs[pkgname]))
+            ErrorPrinter().debug_print(
+                "Using any package: %s", (self._known_pkgs[pkgname])
+            )
             return self._known_pkgs[pkgname]
         else:
-            ErrorPrinter().debug_print('No suitable package found')
+            ErrorPrinter().debug_print("No suitable package found")
             return []
 
     def known_packages_list(self):
@@ -213,14 +227,23 @@ class PkgSearcher:
             try:
                 pkg = Package(self._known_pkgs[pkgname][0])
             except IOError as e:
-                ErrorPrinter().verbose_error("Failed to open '{0}': \
-{1}".format(self._known_pkgs[pkgname][0], e.strerror))
+                ErrorPrinter().verbose_error(
+                    "Failed to open '{0}': \
+{1}".format(
+                        self._known_pkgs[pkgname][0], e.strerror
+                    )
+                )
                 continue
             except UndefinedVarError as e:
-                errors.append("Variable '{0}' not defined in '{1}'".format(e,
-                    self._known_pkgs[pkgname][0]))
+                errors.append(
+                    "Variable '{0}' not defined in '{1}'".format(
+                        e, self._known_pkgs[pkgname][0]
+                    )
+                )
                 continue
-            result.append((pkgname, pkg.properties['name'], pkg.properties['description']))
+            result.append(
+                (pkgname, pkg.properties["name"], pkg.properties["description"])
+            )
         return result, errors
 
     def _init_search_dirs(self):
@@ -236,15 +259,21 @@ class PkgSearcher:
                 if not d or not isdir(d):
                     continue
                 self._append_packages(d)
-        if sys.platform == 'win32':
-            key_path = 'Software\\pkg-config\\PKG_CONFIG_PATH'
-            for root in ((_winreg.HKEY_CURRENT_USER, 'HKEY_CURRENT_USER'),
-                         (_winreg.HKEY_LOCAL_MACHINE, 'HKEY_LOCAL_MACHINE')):
+        if sys.platform == "win32":
+            key_path = "Software\\pkg-config\\PKG_CONFIG_PATH"
+            for root in (
+                (_winreg.HKEY_CURRENT_USER, "HKEY_CURRENT_USER"),
+                (_winreg.HKEY_LOCAL_MACHINE, "HKEY_LOCAL_MACHINE"),
+            ):
                 try:
                     key = _winreg.OpenKey(root[0], key_path)
                 except WindowsError as e:
-                    ErrorPrinter().debug_print('Failed to add paths from \
-{0}\\{1}: {2}'.format(root[1], key_path, e))
+                    ErrorPrinter().debug_print(
+                        "Failed to add paths from \
+{0}\\{1}: {2}".format(
+                            root[1], key_path, e
+                        )
+                    )
                     continue
                 try:
                     num_subkeys, num_vals, modified = _winreg.QueryInfoKey(key)
@@ -253,8 +282,12 @@ class PkgSearcher:
                         if type == _winreg.REG_SZ and isdir(val):
                             self._append_packages(val)
                 except WindowsError as e:
-                    ErrorPrinter().debug_print('Failed to add paths from \
-{0}\\{1}: {2}'.format(root[1], key_path, e))
+                    ErrorPrinter().debug_print(
+                        "Failed to add paths from \
+{0}\\{1}: {2}".format(
+                            root[1], key_path, e
+                        )
+                    )
                 finally:
                     _winreg.CloseKey(key)
         # Default path: If a hard-coded path has been set, use that (excluding
@@ -269,15 +302,15 @@ class PkgSearcher:
                     self._append_packages(d)
         # Default path: Else append prefix/lib/pkgconfig, prefix/share/pkgconfig
         else:
-            if Options().get_option('is_64bit'):
-                suffix = '64'
+            if Options().get_option("is_64bit"):
+                suffix = "64"
             else:
-                suffix = ''
+                suffix = ""
             dirs2check = (
-                join(prefix, 'lib' + suffix),
-                join(prefix, 'lib', str(thisArchTriple)),
-                join(prefix, 'share'),
-                join(prefix, "lib")
+                join(prefix, "lib" + suffix),
+                join(prefix, "lib", str(thisArchTriple)),
+                join(prefix, "share"),
+                join(prefix, "lib"),
             )
             for d in dirs2check:
                 d = join(d, "pkgconfig")
@@ -285,11 +318,10 @@ class PkgSearcher:
                     self._append_packages(d)
 
     def _append_packages(self, d):
-        ErrorPrinter().debug_print('Adding .pc files from %s to known packages',
-                                   (d))
+        ErrorPrinter().debug_print("Adding .pc files from %s to known packages", (d))
         files = listdir(d)
         for filename in files:
-            if filename.endswith('.pc'):
+            if filename.endswith(".pc"):
                 # Test if the file can be opened (pkg-config glosses over,
                 # e.g. links that are now dead, as if they were never there).
                 full_path = join(d, filename)
@@ -297,32 +329,35 @@ class PkgSearcher:
                 if name in self._known_pkgs:
                     if full_path not in self._known_pkgs[name]:
                         self._known_pkgs[name].append(full_path)
-                        ErrorPrinter().debug_print('Package %s has a duplicate file: %s',
-                                                   (name, self._known_pkgs[name]))
+                        ErrorPrinter().debug_print(
+                            "Package %s has a duplicate file: %s",
+                            (name, self._known_pkgs[name]),
+                        )
                 else:
                     self._known_pkgs[name] = [full_path]
 
     def _split_char(self):
         # Get the character used to split a list of directories.
-        if sys.platform == 'win32':
-            return ';'
-        return ':'
+        if sys.platform == "win32":
+            return ";"
+        return ":"
 
     def _can_open_file(self, filename):
         try:
-            result = open(filename, 'r')
+            result = open(filename, "r")
         except IOError as e:
-            ErrorPrinter().debug_print('Could not open {0}'.format(filename))
-            search_string = Options().get_option('search_string').split()
-            if (not search_string and \
-                    Options().get_option('command') == 'list-all') or \
-                    True in [p.startswith(split(filename)[-1].split('.')[0]) \
-                                for p in search_string]:
-                ErrorPrinter().verbose_error("Failed to open '{0}': {1}".format(filename,
-                                                                                e.strerror))
+            ErrorPrinter().debug_print("Could not open {0}".format(filename))
+            search_string = Options().get_option("search_string").split()
+            if (
+                not search_string and Options().get_option("command") == "list-all"
+            ) or True in [
+                p.startswith(split(filename)[-1].split(".")[0]) for p in search_string
+            ]:
+                ErrorPrinter().verbose_error(
+                    "Failed to open '{0}': {1}".format(filename, e.strerror)
+                )
             return False
         return True
 
 
 # vim: tw=79
-

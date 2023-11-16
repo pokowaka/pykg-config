@@ -39,11 +39,13 @@ from pykg_config.exceptions import ParseError
 ##############################################################################
 # Exceptions
 
+
 class BadOperatorError(ParseError):
     """Invalid operator format.
 
     Attributes:
         operator -- Operator text that triggered the error."""
+
     def __init__(self, operator):
         self.operator = operator
 
@@ -66,20 +68,21 @@ ALWAYS_MATCH = 6
 ##############################################################################
 # Support functions
 
+
 def text_to_operator(text):
     if not text:
         return ALWAYS_MATCH
-    elif text == '<':
+    elif text == "<":
         return LESS_THAN
-    elif text == '<=':
+    elif text == "<=":
         return LESS_THAN_EQUAL
-    elif text == '=':
+    elif text == "=":
         return EQUAL
-    elif text == '>=':
+    elif text == ">=":
         return GREATER_THAN_EQUAL
-    elif text == '>':
+    elif text == ">":
         return GREATER_THAN
-    elif text == '!=':
+    elif text == "!=":
         return NOT_EQUAL
     else:
         raise BadOperatorError(text)
@@ -87,22 +90,21 @@ def text_to_operator(text):
 
 def operator_to_text(operator):
     if operator == ALWAYS_MATCH:
-        return ' any '
+        return " any "
     elif operator == LESS_THAN:
-        return '<'
+        return "<"
     elif operator == LESS_THAN_EQUAL:
-        return '<='
+        return "<="
     elif operator == EQUAL:
-        return '='
+        return "="
     elif operator == GREATER_THAN_EQUAL:
-        return '>='
+        return ">="
     elif operator == GREATER_THAN:
-        return '>'
+        return ">"
     elif operator == NOT_EQUAL:
-        return '!='
+        return "!="
     else:
         raise BadOperatorError(str(operator))
 
 
 # vim: tw=79
-

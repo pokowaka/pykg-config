@@ -41,40 +41,40 @@ __version__ = "$Revision: $"
 
 from pykg_config.options import Options
 
+
 class ErrorPrinter(object):
     def __new__(cls, *p, **k):
-        if not '_the_instance' in cls.__dict__:
+        if not "_the_instance" in cls.__dict__:
             cls._the_instance = object.__new__(cls)
         return cls._the_instance
 
     def set_variable(self, var, value):
-        if not hasattr(self, 'vars'):
+        if not hasattr(self, "vars"):
             self.vars = {}
         self.vars[var] = value
 
     def debug_print(self, line, args=None):
-        if not Options().get_option('debug'):
+        if not Options().get_option("debug"):
             return
-        if hasattr(self, 'vars'):
+        if hasattr(self, "vars"):
             for var in self.vars:
-                line = line.replace('%(' + var + ')', self.vars[var])
+                line = line.replace("%(" + var + ")", self.vars[var])
         if args is not None:
             line = line % args
-        Options().get_option('error_dest').write(line + '\n')
+        Options().get_option("error_dest").write(line + "\n")
 
     def error(self, line, args=None):
-        if hasattr(self, 'vars'):
+        if hasattr(self, "vars"):
             for var in self.vars:
-                line = line.replace('%(' + var + ')', self.vars[var])
+                line = line.replace("%(" + var + ")", self.vars[var])
         if args is not None:
             line = line % args
-        Options().get_option('error_dest').write(line + '\n')
+        Options().get_option("error_dest").write(line + "\n")
 
     def verbose_error(self, line, args=None):
-        if not Options().get_option('print_errors'):
+        if not Options().get_option("print_errors"):
             return
         self.error(line, args)
 
 
 # vim: tw=79
-

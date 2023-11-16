@@ -34,8 +34,10 @@
 __version__ = "$Revision: $"
 # $Source$
 
+
 class PykgConfigError(Exception):
     """Base exception class for pykg-config."""
+
     pass
 
 
@@ -44,6 +46,7 @@ class ParseError(PykgConfigError):
 
     Attributes:
         filename -- path and name of the pkg-config file being parsed."""
+
     def __init__(self, filename):
         self.filename = filename
 
@@ -52,4 +55,3 @@ class ParseError(PykgConfigError):
 
 
 # vim: tw=79
-

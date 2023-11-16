@@ -45,6 +45,7 @@ pykg_config_package_name = "pykg_config"
 
 defaultImplsList = ["pkgconf", "pkg-config"]
 
+
 def discover_pkg_config_impl(path=None, impls=None):
     if impls is None:
         impls = defaultImplsList
@@ -58,28 +59,32 @@ def discover_pkg_config_impl(path=None, impls=None):
 
 discovered_pkg_config_command = None
 
+
 def _get_pkg_config_impl():
     global discovered_pkg_config_command
     if discovered_pkg_config_command is None:
         discovered_pkg_config_command = discover_pkg_config_impl()
     return discovered_pkg_config_command
 
+
 class Env:
     __slots__ = ("patch", "backup")
+
     def __init__(self, **kwargs):
         self.patch = kwargs
         self.backup = None
+
     def __enter__(self):
         self.backup = os.environ.copy()
         os.environ.update(self.patch)
         return self
+
     def __exit__(self, exc_type, exc_value, traceback):
         os.environ = self.backup
 
+
 def _call_process(args):
-    process = subprocess.Popen(
-        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
+    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output = process.communicate()
     output = (
         output[0].strip().decode("utf-8"),
@@ -88,6 +93,7 @@ def _call_process(args):
     return_code = process.returncode
     return output[0], output[1], return_code
 
+
 def call_process(args, **env):
     if env:
         with Env(**env):
@@ -95,19 +101,22 @@ def call_process(args, **env):
     else:
         return _call_process(args)
 
+
 def call_pkgconfig(*args, **env):
     return call_process((_get_pkg_config_impl(),) + args, **env)
 
+
 def call_pykgconfig(*args, **env):
-    return call_process(
-        (sys.executable, "-m", pykg_config_package_name) + args, **env
-    )
+    return call_process((sys.executable, "-m", pykg_config_package_name) + args, **env)
+
 
 def call_pkgconfig_get_lines(*args, **env):
     return call_pkgconfig(*args, **env).splitlines()
 
+
 def get_default_pc_vars_names():
     return call_pkgconfig_get_lines("--print-variables", "pkg-config")
+
 
 def get_default_pc_vars_kv_pairs(*var_names):
     if not var_names:
@@ -119,6 +128,7 @@ def get_default_pc_vars_kv_pairs(*var_names):
             yield var_name, res
         else:
             yield var_name, None
+
 
 def get_default_pc_vars_dict(*var_names):
     return dict(get_default_pc_vars_kv_pairs(*var_names))

@@ -48,10 +48,24 @@ from pykg_config.pkgconfig import call_pykgconfig
 
 class TestVersion(unittest.TestCase):
     def setUp(self):
-        self.strings = ['2.3', '5.0-svn', '1.2.3.4.a.6', '15', '2.3.0',
-                        '2.3.1', '2.3-a']
-        self.parsed = [[2, 3], [5, 0, 'svn'], [1, 2, 3, 4, 'a', 6], [15],
-                       [2, 3, 0], [2, 3, 1], [2, 3, 'a']]
+        self.strings = [
+            "2.3",
+            "5.0-svn",
+            "1.2.3.4.a.6",
+            "15",
+            "2.3.0",
+            "2.3.1",
+            "2.3-a",
+        ]
+        self.parsed = [
+            [2, 3],
+            [5, 0, "svn"],
+            [1, 2, 3, 4, "a", 6],
+            [15],
+            [2, 3, 0],
+            [2, 3, 1],
+            [2, 3, "a"],
+        ]
 
     def test_constructor(self):
         for case, result in zip(self.strings, self.parsed):
@@ -91,68 +105,75 @@ class TestVersion(unittest.TestCase):
         self.assertFalse(versions[0] > versions[1])
         self.assertFalse(versions[0] > versions[3])
 
+
 class TestPackage(unittest.TestCase):
     def test_parse_package_spec_list(self):
-        parsed = packagespeclist.parse_package_spec_list('blag < 2.3, \
-                blerg>=5-svn blork, bleck = 15')
-        expected = [dependency.Dependency('blag', dependency.LESS_THAN,
-                                          version.Version('2.3')),
-                    dependency.Dependency('blerg', dependency.GREATER_THAN_EQUAL,
-                                          version.Version('5-svn')),
-                    dependency.Dependency('blork', dependency.ALWAYS_MATCH,
-                                          version.Version()),
-                    dependency.Dependency('bleck', dependency.EQUAL,
-                                          version.Version('15'))]
+        parsed = packagespeclist.parse_package_spec_list(
+            "blag < 2.3, \
+                blerg>=5-svn blork, bleck = 15"
+        )
+        expected = [
+            dependency.Dependency("blag", dependency.LESS_THAN, version.Version("2.3")),
+            dependency.Dependency(
+                "blerg", dependency.GREATER_THAN_EQUAL, version.Version("5-svn")
+            ),
+            dependency.Dependency("blork", dependency.ALWAYS_MATCH, version.Version()),
+            dependency.Dependency("bleck", dependency.EQUAL, version.Version("15")),
+        ]
         self.assertEqual(parsed, expected)
 
 
 class TestSubstitutions(unittest.TestCase):
     def setUp(self):
-        self.vars = {'blag1': 'not recursive',
-                     'blag2': 'references ${blag1} variable',
-                     'blag3': 'recursive with ${blag3}'}
+        self.vars = {
+            "blag1": "not recursive",
+            "blag2": "references ${blag1} variable",
+            "blag3": "recursive with ${blag3}",
+        }
 
     def test_escaping(self):
-        value = 'a $${blag1} that should not be replaced'
-        result = 'a ${blag1} that should not be replaced'
+        value = "a $${blag1} that should not be replaced"
+        result = "a ${blag1} that should not be replaced"
         self.assertEqual(substitute.substitute(value, self.vars), result)
 
     def test_substitute(self):
-        value = 'stuff ${blag2} more stuff ${blag1} ${blag3}'
-        result = 'stuff references not recursive variable more stuff not recursive recursive with ${blag3}'
+        value = "stuff ${blag2} more stuff ${blag1} ${blag3}"
+        result = "stuff references not recursive variable more stuff not recursive recursive with ${blag3}"
         self.assertEqual(substitute.substitute(value, self.vars), result)
 
     def test_get_to_replace_re(self):
-        self.assertEqual(substitute.get_to_replace_re('blag'),
-                         re.compile ('(?<!\\$)\\$\\{blag\\}', re.U))
+        self.assertEqual(
+            substitute.get_to_replace_re("blag"),
+            re.compile("(?<!\\$)\\$\\{blag\\}", re.U),
+        )
 
     def test_get_all_substitutions(self):
-        nameful = '${lots} of ${names} ${reffed}.'
-        self.assertEqual(substitute.get_all_substitutions(nameful),
-                         ['lots', 'names', 'reffed'])
+        nameful = "${lots} of ${names} ${reffed}."
+        self.assertEqual(
+            substitute.get_all_substitutions(nameful), ["lots", "names", "reffed"]
+        )
 
     def test_undefined_var(self):
-        stdout, stderr, ret_code = call_pykgconfig('--cflags', 'global_var')
+        stdout, stderr, ret_code = call_pykgconfig("--cflags", "global_var")
         self.assertEqual(ret_code, 1)
 
     def test_global_var(self):
-        stdout, stderr, ret_code = call_pykgconfig('--cflags', 'global_var', '--define-variable=global_var=blurg')
-        self.assertEqual(stdout, '-Iblurg')
+        stdout, stderr, ret_code = call_pykgconfig(
+            "--cflags", "global_var", "--define-variable=global_var=blurg"
+        )
+        self.assertEqual(stdout, "-Iblurg")
         self.assertEqual(ret_code, 0)
 
 
 class TestQuoteEscapes(unittest.TestCase):
-
     def test_maintain_escaping(self):
-        stdout, stderr, ret_code = call_pykgconfig('--cflags', 'unittests1')
-        self.assertEqual(stdout, r'-DPATH=\"/opt/shaders/\"')
+        stdout, stderr, ret_code = call_pykgconfig("--cflags", "unittests1")
+        self.assertEqual(stdout, r"-DPATH=\"/opt/shaders/\"")
         self.assertEqual(ret_code, 0)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
 
 
 # vim: tw=79
-

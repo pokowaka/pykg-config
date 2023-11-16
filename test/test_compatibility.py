@@ -49,11 +49,13 @@ from pykg_config.pkgconfig import call_pykgconfig, call_pkgconfig
 
 class TestCompatibility(unittest.TestCase):
     def setUp(self):
-        self.packages = [('dbus-1', '1.12.20'),
-                         ('openssl', '1.1.1f'),
-                         ('libxml-2.0', '2.9.10'),
-                         ('QtCore', '4.7.4')]
-        self.error_package = 'thisisabadpkg'
+        self.packages = [
+            ("dbus-1", "1.12.20"),
+            ("openssl", "1.1.1f"),
+            ("libxml-2.0", "2.9.10"),
+            ("QtCore", "4.7.4"),
+        ]
+        self.error_package = "thisisabadpkg"
 
     def get_random_package(self):
         return random.choice(self.packages)[0]
@@ -64,19 +66,19 @@ class TestCompatibility(unittest.TestCase):
     def get_random_package_with_incremented_version(self):
         pkg = self.get_random_package_with_version()
         # Bump the version number of the chosen package
-        version = pkg[1].split('.')
+        version = pkg[1].split(".")
         version = [version[0], str(int(version[1]) + 1)] + version[2:]
-        return (pkg[0], '.'.join(version))
+        return (pkg[0], ".".join(version))
 
     def get_random_package_with_decremented_version(self):
         pkg = self.get_random_package_with_version()
         # Drop the version number of the chosen package
-        version = pkg[1].split('.')
+        version = pkg[1].split(".")
         if int(version[1]) == 0:
             version = [str(int(version[0]) - 1)] + version[2:]
         else:
             version = [version[0], str(int(version[1]) - 1)] + version[2:]
-        return (pkg[0], '.'.join(version))
+        return (pkg[0], ".".join(version))
 
     def run_test_case(self, args):
         lhs_result = call_pykgconfig(*args, PYTHONPATH="../")
@@ -84,167 +86,165 @@ class TestCompatibility(unittest.TestCase):
         return lhs_result, rhs_result
 
     def build_error_msg(self, args, lhs, rhs):
-        return 'Failed with arguments: {0}\nLHS: {1}\nRHS: {2}'.format(args,
-                                                                       lhs,
-                                                                       rhs)
+        return "Failed with arguments: {0}\nLHS: {1}\nRHS: {2}".format(args, lhs, rhs)
 
     def test_noargs(self):
         lhs, rhs = self.run_test_case([])
         self.assertEqual(lhs, rhs)
 
     def test_version(self):
-        args = ['--version']
+        args = ["--version"]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs)
 
     def test_atleast_pkgconfig_greater(self):
-        args = ['--atleast-pkgconfig-version=1.0']
+        args = ["--atleast-pkgconfig-version=1.0"]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs)
 
     def test_atleast_pkgconfig_equal(self):
-        args = ['--atleast-pkgconfig-version=0.23']
+        args = ["--atleast-pkgconfig-version=0.23"]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs)
 
     def test_atleast_pkgconfig_less(self):
-        args = ['--atleast-pkgconfig-version=0.1']
+        args = ["--atleast-pkgconfig-version=0.1"]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs)
 
     def test_modversion_existing_package(self):
         pkg = self.get_random_package_with_version()
-        args = ['--modversion', pkg[0]]
+        args = ["--modversion", pkg[0]]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[0], pkg[1], self.build_error_msg(args, lhs[0], pkg[1]))
 
     def test_modversion_nonexisting_package(self):
         pkg = self.get_random_package_with_version()
-        args = ['--modversion', pkg[0] + 'blag']
+        args = ["--modversion", pkg[0] + "blag"]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 1, self.build_error_msg(args, lhs, rhs))
 
     def test_modversion_no_package(self):
-        args = ['--modversion']
+        args = ["--modversion"]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 1, self.build_error_msg(args, lhs, rhs))
 
     def test_atleast_modversion_greater(self):
         pkg = self.get_random_package_with_incremented_version()
-        args = ['--atleast-version', pkg[1], pkg[0]]
+        args = ["--atleast-version", pkg[1], pkg[0]]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 1, self.build_error_msg(args, lhs, rhs))
 
     def test_atleast_modversion_equal(self):
         pkg = self.get_random_package_with_version()
-        args = ['--atleast-version', pkg[1], pkg[0]]
+        args = ["--atleast-version", pkg[1], pkg[0]]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
-        self.assertEqual(lhs[2], 0, self.build_error_msg(args, lhs[2], '0'))
+        self.assertEqual(lhs[2], 0, self.build_error_msg(args, lhs[2], "0"))
 
     def test_atleast_modversion_less(self):
         pkg = self.get_random_package_with_decremented_version()
-        args = ['--atleast-version', pkg[1], pkg[0]]
+        args = ["--atleast-version", pkg[1], pkg[0]]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 0, self.build_error_msg(args, lhs, rhs))
 
     def test_exact_modversion_greater(self):
         pkg = self.get_random_package_with_incremented_version()
-        args = ['--exact-version', pkg[1], pkg[0]]
+        args = ["--exact-version", pkg[1], pkg[0]]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 1, self.build_error_msg(args, lhs, rhs))
 
     def test_exact_modversion_equal(self):
         pkg = self.get_random_package_with_version()
-        args = ['--exact-version', pkg[1], pkg[0]]
+        args = ["--exact-version", pkg[1], pkg[0]]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 0, self.build_error_msg(args, lhs, rhs))
 
     def test_exact_modversion_less(self):
         pkg = self.get_random_package_with_decremented_version()
-        args = ['--exact-version', pkg[1], pkg[0]]
+        args = ["--exact-version", pkg[1], pkg[0]]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 1, self.build_error_msg(args, lhs, rhs))
 
     def test_max_modversion_greater(self):
         pkg = self.get_random_package_with_incremented_version()
-        args = ['--max-version', pkg[1], pkg[0]]
+        args = ["--max-version", pkg[1], pkg[0]]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 0, self.build_error_msg(args, lhs, rhs))
 
     def test_max_modversion_equal(self):
         pkg = self.get_random_package_with_version()
-        args = ['--max-version', pkg[1], pkg[0]]
+        args = ["--max-version", pkg[1], pkg[0]]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 0, self.build_error_msg(args, lhs, rhs))
 
     def test_max_modversion_less(self):
         pkg = self.get_random_package_with_decremented_version()
-        args = ['--max-version', pkg[1], pkg[0]]
+        args = ["--max-version", pkg[1], pkg[0]]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
-        self.assertEqual(lhs[2], 1, self.build_error_msg(args, lhs[2], '1'))
+        self.assertEqual(lhs[2], 1, self.build_error_msg(args, lhs[2], "1"))
 
     def test_exists_existing(self):
         pkg = self.get_random_package()
-        args = ['--exists', pkg]
+        args = ["--exists", pkg]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 0, self.build_error_msg(args, lhs, rhs))
 
     def test_exists_nonexisting(self):
         pkg = self.get_random_package()
-        args = ['--exists', pkg + 'blag']
+        args = ["--exists", pkg + "blag"]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 1, self.build_error_msg(args, lhs, rhs))
 
     def test_exists_with_correct_version(self):
         pkg = self.get_random_package_with_version()
-        args = ['--exists', pkg[0], '=', pkg[1]]
+        args = ["--exists", pkg[0], "=", pkg[1]]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 0, self.build_error_msg(args, lhs, rhs))
 
     def test_exists_with_incorrect_version(self):
         pkg = self.get_random_package_with_incremented_version()
-        args = ['--exists', pkg[0], '=', pkg[1]]
+        args = ["--exists", pkg[0], "=", pkg[1]]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 1, self.build_error_msg(args, lhs, rhs))
 
     def test_get_variable_existing(self):
-        args = ['--variable', 'prefix', self.packages[0][0]]
+        args = ["--variable", "prefix", self.packages[0][0]]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 0, self.build_error_msg(args, lhs, rhs))
 
     def test_get_variable_nonexisting(self):
-        args = ['--variable', 'prefix', self.packages[1][0]]
+        args = ["--variable", "prefix", self.packages[1][0]]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 0, self.build_error_msg(args, lhs, rhs))
 
     def test_define_variable(self):
         pkg = self.get_random_package()
-        args = ['--define-variable', 'prefix=/usr/local', '--cflags', pkg]
+        args = ["--define-variable", "prefix=/usr/local", "--cflags", pkg]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
         self.assertEqual(lhs[2], 0, self.build_error_msg(args, lhs, rhs))
 
     def test_uninstalled(self):
         pkg = self.get_random_package()
-        args = ['--uninstalled', pkg]
+        args = ["--uninstalled", pkg]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
@@ -252,10 +252,10 @@ class TestCompatibility(unittest.TestCase):
         # The ordering of the list-all output is different between the two
         # programs due to the two different methods used for managing the list
         # of known packages and their order of precedence.
-        args = ['--list-all']
+        args = ["--list-all"]
         lhs, rhs = self.run_test_case(args)
-        lhs_pkgs = lhs[0].split('\n')
-        rhs_pkgs = rhs[0].split('\n')
+        lhs_pkgs = lhs[0].split("\n")
+        rhs_pkgs = rhs[0].split("\n")
         for lhs_pkg in lhs_pkgs:
             self.assert_(lhs_pkg in rhs_pkgs, '"{0}" not in RHS'.format(lhs_pkg))
         for rhs_pkg in rhs_pkgs:
@@ -268,7 +268,7 @@ class TestCompatibility(unittest.TestCase):
         # This test relies on there being an error present. I have a dead
         # symlink in one of the searched dirs to cause an error (no such file
         # or dir) when performing the list-all command.
-        args = ['--cflags', '--print-errors', self.error_package]
+        args = ["--cflags", "--print-errors", self.error_package]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
@@ -276,7 +276,7 @@ class TestCompatibility(unittest.TestCase):
         # This test relies on using a command that does _not_ produce any
         # errors.
         pkg = self.get_random_package()
-        args = ['--print-errors', '--modversion', pkg]
+        args = ["--print-errors", "--modversion", pkg]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
@@ -284,7 +284,7 @@ class TestCompatibility(unittest.TestCase):
         # This test relies on there being an error present. I have a dead
         # symlink in one of the searched dirs to cause an error (no such file
         # or dir) when performing the list-all command.
-        args = ['--cflags', '--silence-errors', self.error_package]
+        args = ["--cflags", "--silence-errors", self.error_package]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
@@ -292,69 +292,68 @@ class TestCompatibility(unittest.TestCase):
         # This test relies on using a command that does _not_ produce any
         # errors.
         pkg = self.get_random_package()
-        args = ['--silence-errors', '--modversion', pkg]
+        args = ["--silence-errors", "--modversion", pkg]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
     def test_errors_to_stdout(self):
-        args = ['--cflags', '--errors-to-stdout', self.error_package]
+        args = ["--cflags", "--errors-to-stdout", self.error_package]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
     def test_short_errors(self):
-        args = ['--cflags', '--short-errors', 'nonexistentpackage']
+        args = ["--cflags", "--short-errors", "nonexistentpackage"]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
     def test_libs(self):
         pkg = self.get_random_package()
-        args = ['--libs', pkg]
+        args = ["--libs", pkg]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
     def test_static(self):
         pkg = self.get_random_package()
-        args = ['--libs', '--static', pkg]
+        args = ["--libs", "--static", pkg]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
     def test_libs_only_l(self):
         pkg = self.get_random_package()
-        args = ['--libs-only-l', pkg]
+        args = ["--libs-only-l", pkg]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
     def test_libs_only_other(self):
         pkg = self.get_random_package()
-        args = ['--libs-only-other', pkg]
+        args = ["--libs-only-other", pkg]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
     def test_libs_only_big_l(self):
         pkg = self.get_random_package()
-        args = ['--libs-only-L', pkg]
+        args = ["--libs-only-L", pkg]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
     def test_cflags(self):
         pkg = self.get_random_package()
-        args = ['--cflags', pkg]
+        args = ["--cflags", pkg]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
     def test_cflags_only_big_i(self):
         pkg = self.get_random_package()
-        args = ['--cflags-only-I', pkg]
+        args = ["--cflags-only-I", pkg]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
     def test_cflags_only_other(self):
         pkg = self.get_random_package()
-        args = ['--cflags-only-other', pkg]
+        args = ["--cflags-only-other", pkg]
         lhs, rhs = self.run_test_case(args)
         self.assertEqual(lhs, rhs, self.build_error_msg(args, lhs, rhs))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
-

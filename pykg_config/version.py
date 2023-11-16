@@ -46,30 +46,34 @@ from pykg_config.exceptions import ParseError
 ##############################################################################
 # Exceptions
 
+
 class BadVersionFormatError(ParseError):
     """Generic error parsing a pkg-config file.
 
     Attributes:
         versionstring -- String containing the badly-formatted version."""
-    def __init__(self, versionstring, package = ''):
+
+    def __init__(self, versionstring, package=""):
         self.versionstring = versionstring
         self.package = package
 
     def __str__(self):
-        return '%s: %s' % (self.package, self.versionstring)
+        return "%s: %s" % (self.package, self.versionstring)
 
 
 ##############################################################################
 # Version class
 
+
 class Version:
     def __init__(self, version_string=None):
         if version_string is not None:
             self._parse_version(version_string)
-            ErrorPrinter().debug_print('Parsed %s into %s',
-                                       (version_string, self.comps))
+            ErrorPrinter().debug_print(
+                "Parsed %s into %s", (version_string, self.comps)
+            )
         else:
-            self.raw_string = '0'
+            self.raw_string = "0"
             self.comps = [0]
 
     def __str__(self):
@@ -118,15 +122,16 @@ class Version:
         self.comps = []
         start = 0
         while start < len(version_string):
-            m = re.match(r'[-._~+ ]?(?P<comp>[a-zA-Z0-9%]+)',
-                         version_string[start:], re.U)
+            m = re.match(
+                r"[-._~+ ]?(?P<comp>[a-zA-Z0-9%]+)", version_string[start:], re.U
+            )
             if m is None:
                 # Stop pulling out components when the start of the string
                 # no longer matches
-                #raise BadVersionFormatError(version_string)
+                # raise BadVersionFormatError(version_string)
                 # pkg-config apparently ignores poorly-formatted versions
                 return
-            comp = m.group('comp')
+            comp = m.group("comp")
             try:
                 comp = int(comp)
             except ValueError:
@@ -175,4 +180,3 @@ class Version:
 
 
 # vim: tw=79
-

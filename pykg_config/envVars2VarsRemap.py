@@ -41,10 +41,9 @@ envVars2VarsRemap = {
     "LIBDIR": "config_libdir",
 }
 
-envVars2VarsRemap = {
-    (k + env_var_prefix): v for k, v in envVars2VarsRemap.items()
-}
+envVars2VarsRemap = {(k + env_var_prefix): v for k, v in envVars2VarsRemap.items()}
 vars2EnvVarsRemap = {v: k for k, v in envVars2VarsRemap.items()}
+
 
 def look_up_var_in_env(var_name, default=None):
     from os import environ

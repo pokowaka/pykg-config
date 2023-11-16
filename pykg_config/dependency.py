@@ -44,6 +44,7 @@ from pykg_config.operators import *
 ##############################################################################
 # Dependency class
 
+
 class Dependency:
     def __init__(self, name, operator, version):
         self.name = name
@@ -51,17 +52,21 @@ class Dependency:
         self.version = version
 
     def __eq__(self, other):
-        if self.name == other.name and \
-           self.operator == other.operator and \
-           self.version == other.version:
-               return True
+        if (
+            self.name == other.name
+            and self.operator == other.operator
+            and self.version == other.version
+        ):
+            return True
         return False
 
     def __ne__(self, other):
-        if self.name != other.name or \
-           self.operator != other.operator or \
-           self.version != other.version:
-               return True
+        if (
+            self.name != other.name
+            or self.operator != other.operator
+            or self.version != other.version
+        ):
+            return True
         return False
 
     def __str__(self):
@@ -87,4 +92,3 @@ class Dependency:
 
 
 # vim: tw=79
-
