@@ -39,6 +39,7 @@ __version__ = "$Revision: $"
 from os.path import isdir, isfile, join, split, splitext
 from typing import List, Dict, Optional, Tuple
 import sys
+import platform
 
 if sys.platform == "win32":
     import winreg
@@ -133,6 +134,9 @@ class TargetTriple:
             from the current Python implementation's multiarch information.
         """
         pythonTriple = sys.implementation._multiarch.split("-")
+        # Will not exist on Darwin, so we just pretend.
+        if len(pythonTriple) < 3:
+            pythonTriple = [platform.machine(), platform.system().lower(), platform.architecture()[0]]
         self.arch = arch if arch is not None else pythonTriple[0]
         self.os = os if os is not None else pythonTriple[1]
         self.abi = abi if abi is not None else pythonTriple[2]
