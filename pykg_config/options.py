@@ -76,6 +76,7 @@ class Options(object):
             "prefer_uninstalled": True,
             "pc_sysrootdir": "/",
             "pc_topbuilddir": "",
+            "search_paths": [],
             "print_errors": True,
             "short_errors": False,
             "error_dest": sys.stderr,

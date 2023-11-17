@@ -38,6 +38,7 @@ from optparse import OptionParser, OptionError
 from os import getenv
 import sys
 import traceback
+import platform
 
 from .errorprinter import ErrorPrinter
 from .result import PkgCfgResult, NoPackagesSpecifiedError
@@ -251,6 +252,13 @@ conflicting packages",
         help="Normalise paths to use the correct slash for \
 your platform. [Default: %default]",
     )
+    parser.add_option(
+        "--path",
+        dest="search_paths",
+        action="append",
+        default=[],
+        help="Additional search paths for package discovery",
+    )
     if sys.platform == "win32":
         parser.add_option(
             "--dont-define-prefix",
@@ -320,16 +328,11 @@ def main():
         sys.exit(1)
 
     if options.realversion:
-        print(
-            "{0} (Equivalent to {1}".format(PYKG_CONFIG_VERSION, CORRESPONDING_VERSION)
-        )
+        print(f"{PYKG_CONFIG_VERSION} (Equivalent to {CORRESPONDING_VERSION}")
         sys.exit(0)
 
-    zip_name = "python{0}{1}.zip".format(sys.version_info[0], sys.version_info[1])
-    for path in sys.path:
-        if path.endswith("64/" + zip_name):
-            Options().set_option("is_64bit", True)
-            break
+    if platform.architecture()[0] == "64bit":
+        Options().set_option("is_64bit", True)
 
     def splitSerializedList(ls):
         return ls.split(self._split_char())
@@ -411,6 +414,7 @@ def main():
     else:
         Options().set_option("normalise_paths", False)
 
+    Options().set_option("search_paths", options.search_paths)
     if (
         options.modversion
         or options.libs

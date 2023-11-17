@@ -37,6 +37,7 @@ __version__ = "$Revision: $"
 # $Source$
 
 from os.path import isdir, isfile, join, split, splitext
+from os import listdir
 from typing import List, Dict, Optional, Tuple
 import sys
 import platform
@@ -343,6 +344,9 @@ class PkgSearcher:
                 d = join(d, "pkgconfig")
                 if isdir(d):
                     self._append_packages(d)
+        for path in Options().get_option("search_paths"):
+            if isdir(path):
+                self._append_packages(path)
 
     def _append_packages(self, d: str) -> None:
         ErrorPrinter().debug_print(f"Adding .pc files from {d} to known packages")
