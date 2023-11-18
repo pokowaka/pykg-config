@@ -103,54 +103,6 @@ class NotAPCFileError(BadPathError):
     pass
 
 
-class TargetTriple:
-    """Represents a target triple containing architecture, operating system, ABI, and bitness.
-
-    Attributes:
-        arch (str): The architecture.
-        os (str): The operating system.
-        abi (str): The application binary interface.
-        bitness (str, optional): The bitness, if specified.
-
-    Methods:
-        __init__: Initializes a TargetTriple instance.
-        __str__: Returns a string representation of the target triple.
-    """
-
-    __slots__ = ("arch", "bitness", "os", "abi")
-
-    def __init__(
-        self, arch: str = None, os: str = None, abi: str = None, bitness: str = None
-    ) -> None:
-        """Initialize a TargetTriple instance.
-
-        Args:
-            arch (str, optional): The architecture.
-            os (str, optional): The operating system.
-            abi (str, optional): The application binary interface.
-            bitness (str, optional): The bitness.
-
-        Note:
-            If any of the optional parameters are not provided, they are derived
-            from the current Python implementation's multiarch information.
-        """
-        pythonTriple = sys.implementation._multiarch.split("-")
-        # Will not exist on Darwin, so we just pretend.
-        if len(pythonTriple) < 3:
-            pythonTriple = [platform.machine(), platform.system().lower(), platform.architecture()[0]]
-        self.arch = arch if arch is not None else pythonTriple[0]
-        self.os = os if os is not None else pythonTriple[1]
-        self.abi = abi if abi is not None else pythonTriple[2]
-        self.bitness = bitness
-
-    def __str__(self) -> str:
-        """Return a string representation of the target triple."""
-        return "-".join((self.arch, self.os, self.abi))
-
-
-thisArchTriple = TargetTriple()
-
-
 ##############################################################################
 # PkgSearcher object
 
@@ -336,7 +288,6 @@ class PkgSearcher:
                 suffix = ""
             dirs2check = (
                 join(prefix, f"lib{suffix}"),
-                join(prefix, "lib", str(thisArchTriple)),
                 join(prefix, "share"),
                 join(prefix, "lib"),
             )
