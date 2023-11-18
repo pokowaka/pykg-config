@@ -238,6 +238,13 @@ conflicting packages",
         help="Print errors from --print-errors to stdout",
     )
     parser.add_option(
+        "--print-variables",
+        dest="print_variables",
+        action="store_true",
+        default=False,
+        help="output list of variables defined by the module",
+    )
+    parser.add_option(
         "--dump-package",
         dest="dump_package",
         action="store_true",
@@ -425,6 +432,7 @@ def main():
         or options.cflags_only_big_i
         or options.cflags_only_other
         or options.list_all
+        or options.print_variables
     ):
         if options.silence_errors:
             Options().set_option("print_errors", False)
@@ -524,6 +532,14 @@ to the PKG_CONFIG_PATH environment variable""".format(
         if found_version > Version(options.max_version):
             sys.exit(1)
         sys.exit(0)
+
+
+    if options.print_variables:
+        value = result.get_variables()
+        if value == None:
+            print("")
+        else:
+            print(value)
 
     if options.variable:
         value = result.get_variable_value(options.variable)

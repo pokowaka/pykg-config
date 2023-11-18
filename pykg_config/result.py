@@ -199,6 +199,13 @@ class PkgCfgResult:
                 ]
         return self._format_list(_filter_duplicates(result))
 
+    def get_variables(self):
+        """Get all the variables"""
+        for pkg in self.searched_packages:
+            loaded_pkg = self._get_loaded_package(pkg.name)
+            return "\n".join(loaded_pkg.variables.keys())
+        return None
+
     def get_variable_value(self, variable):
         """Find a variable definition in the list of packages, going through
         the list of packages in the command line order first before trying
